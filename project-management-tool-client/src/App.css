@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+/* Smooth drag and drop animations */
+.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg);
+  transition: none !important;
+}
+
+.drag-overlay {
+  opacity: 0.8;
+  transform: rotate(5deg);
+}
+
+/* Smooth transitions for hover effects */
+.droppable-area {
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.droppable-area.drag-over {
+  background-color: #e0e0e0;
+  transform: scale(1.02);
+}
+
+.dark .droppable-area.drag-over {
+  background-color: #374151; /* A lighter gray for contrast */
+  transform: scale(1.02);
+}
