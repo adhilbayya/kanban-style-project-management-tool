@@ -18,9 +18,11 @@ export interface ProjectType {
 const Card = ({
   card,
   isDarkMode = false,
+  onDelete,
 }: {
   card: CardType;
   isDarkMode?: boolean;
+  onDelete?: () => void;
 }) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: card._id,
@@ -45,11 +47,11 @@ const Card = ({
       } shadow-md hover:shadow-lg`}
     >
       <h4
-        className={`text-xs md:text-sm font-bold ${
+        className={`flex justify-between text-xs md:text-sm font-bold ${
           isDarkMode ? "text-white" : "text-gray-900"
         }`}
       >
-        {card.title}
+        {card.title} <button onClick={onDelete}>X</button>
       </h4>
       {card.description && (
         <p

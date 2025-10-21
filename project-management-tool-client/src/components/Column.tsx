@@ -7,8 +7,15 @@ interface ColumnData {
   id: string;
   cards: CardType[];
   isDarkMode?: boolean;
+  onDeleteCard: (cardId: string, fromList: string) => void;
 }
-const Column = ({ title, id, cards, isDarkMode = false }: ColumnData) => {
+const Column = ({
+  title,
+  id,
+  cards,
+  onDeleteCard,
+  isDarkMode = false,
+}: ColumnData) => {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -29,7 +36,12 @@ const Column = ({ title, id, cards, isDarkMode = false }: ColumnData) => {
       </h2>
       <div className="p-1 md:p-2 space-y-1 md:space-y-2 overflow-y-auto h-full max-h-[300px] md:max-h-none">
         {cards.map((card) => (
-          <Card key={card._id} card={card} isDarkMode={isDarkMode} />
+          <Card
+            key={card._id}
+            card={card}
+            isDarkMode={isDarkMode}
+            onDelete={() => onDeleteCard(card._id, id)}
+          />
         ))}
       </div>
     </div>

@@ -161,18 +161,33 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
   const handleCreateCard = async (title: string, description: string) => {
     if (!selectedProjectId) return;
     try {
-      const response = await axios.post(
+      const { data: newCard } = await axios.post<CardType>(
         `http://localhost:3000/cards/projects/${selectedProjectId}/cards`,
         { title, description, status: "todo" }
       );
-      const cardsResponse = await axios.get<CardType[]>(
-        `http://localhost:3000/cards/projects/${selectedProjectId}/cards`
-      );
-      const organisedData = organiseCardsByList(cardsResponse.data);
-      setColumns(organisedData);
+      setColumns((prev) => ({
+        ...prev,
+        todo: [...prev.todo, newCard],
+      }));
     } catch (error) {
       console.error("Failed to create card:", error);
       alert("Failed to create card. Please try again.");
+    }
+  };
+
+  const handleDeleteCard = async (cardId: string, fromList: string) => {
+    if (!setSelectedProjectId) return;
+    try {
+      await axios.delete(
+        `http://localhost:3000/cards/projects/${selectedProjectId}/cards/${cardId}`
+      );
+      setColumns((prevColumn) => ({
+        ...prevColumn,
+        [fromList]: prevColumn[fromList].filter((card) => card._id !== cardId),
+      }));
+    } catch (error) {
+      console.error("Failed to delete", error);
+      alert("Failed to delete card, Try again after some time");
     }
   };
 
@@ -279,18 +294,21 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
                   id="todo"
                   cards={columns["todo"]}
                   isDarkMode={isDarkMode}
+                  onDeleteCard={handleDeleteCard}
                 />
                 <Column
                   title="In Progress"
                   id="in-progress"
                   cards={columns["in-progress"]}
                   isDarkMode={isDarkMode}
+                  onDeleteCard={handleDeleteCard}
                 />
                 <Column
                   title="Completed"
                   id="done"
                   cards={columns["done"]}
                   isDarkMode={isDarkMode}
+                  onDeleteCard={handleDeleteCard}
                 />
               </div>
             ) : (
