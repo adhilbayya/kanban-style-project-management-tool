@@ -24,6 +24,39 @@ exports.createProject = async (req, res) => {
   }
 };
 
+exports.updateProject = async (req, res) => {
+  try {
+    const updatedProject = await Project.findByIdAndUpdate(
+      { _id: req.params.projectId },
+      req.body,
+      {
+        runValidators: true,
+        new: true,
+      }
+    );
+    if (!updatedProject) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    res.status(200).json(updatedProject);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.deleteProject = async (req, res) => {
+  try {
+    const deletedProject = await Project.findByIdAndDelete({
+      _id: req.params.projectId,
+    });
+    if (!deletedProject) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+    res.status(200).json(deletedProject);
+  } catch (error) {
+    json.status(400).json({ message: error.message });
+  }
+};
+
 exports.getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(req.params.projectId);
