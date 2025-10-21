@@ -1,4 +1,6 @@
+import axios from "axios";
 import type { ProjectType } from "./Card";
+import { DeleteOutline } from "@mui/icons-material";
 
 interface SidebarProps {
   projects: ProjectType[];
@@ -8,6 +10,7 @@ interface SidebarProps {
   isDarkMode: boolean;
   onToggleTheme: () => void;
   isCollapsed: boolean;
+  projectsData: React.Dispatch<React.SetStateAction<ProjectType[]>>;
 }
 
 const Sidebar = ({
@@ -18,8 +21,20 @@ const Sidebar = ({
   isDarkMode,
   onToggleTheme,
   isCollapsed,
+  projectsData,
 }: SidebarProps) => {
   const selectedProject = projects.find((p) => p._id === selectedProjectId);
+
+  const handleDelete = async (projectId: string) => {
+    try {
+      axios.delete(`http://localhost:3000/cards/projects/${projectId}`);
+      projectsData((prevProjects) => {
+        return prevProjects.filter((p) => p._id !== projectId);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div
@@ -155,7 +170,7 @@ const Sidebar = ({
                     <button
                       key={project._id}
                       onClick={() => onProjectSelect(project._id)}
-                      className={`w-full text-left p-3 rounded-lg transition-colors ${
+                      className={`flex justify-between w-full text-left p-3 rounded-lg transition-colors ${
                         selectedProjectId === project._id
                           ? isDarkMode
                             ? "bg-blue-600 text-white"
@@ -165,20 +180,25 @@ const Sidebar = ({
                           : "hover:bg-gray-100 text-gray-700"
                       }`}
                     >
-                      <div className="font-medium">{project.title}</div>
-                      {project.description && (
-                        <div
-                          className={`text-xs mt-1 ${
-                            selectedProjectId === project._id
-                              ? "text-blue-100"
-                              : isDarkMode
-                              ? "text-gray-400"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {project.description}
-                        </div>
-                      )}
+                      <div>
+                        <div className="font-medium">{project.title}</div>
+                        {project.description && (
+                          <div
+                            className={`text-xs mt-1 ${
+                              selectedProjectId === project._id
+                                ? "text-blue-100"
+                                : isDarkMode
+                                ? "text-gray-400"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {project.description}
+                          </div>
+                        )}
+                      </div>
+                      <div onClick={() => handleDelete(project._id)}>
+                        <DeleteOutline />
+                      </div>
                     </button>
                   ))
                 )}

@@ -1,4 +1,5 @@
 import { useDraggable } from "@dnd-kit/core";
+import { DeleteOutline } from "@mui/icons-material";
 
 export interface CardType {
   _id: string;
@@ -51,7 +52,16 @@ const Card = ({
           isDarkMode ? "text-white" : "text-gray-900"
         }`}
       >
-        {card.title} <button onClick={onDelete}>X</button>
+        {card.title}{" "}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete?.();
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <DeleteOutline />
+        </button>
       </h4>
       {card.description && (
         <p

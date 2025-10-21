@@ -176,7 +176,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
   };
 
   const handleDeleteCard = async (cardId: string, fromList: string) => {
-    if (!setSelectedProjectId) return;
+    if (!selectedProjectId) return;
     try {
       await axios.delete(
         `http://localhost:3000/cards/projects/${selectedProjectId}/cards/${cardId}`
@@ -209,6 +209,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
           isDarkMode={isDarkMode}
           onToggleTheme={onToggleTheme}
           isCollapsed={sidebarCollapsed}
+          projectsData={setProjects}
         />
 
         {/* Main Content */}
