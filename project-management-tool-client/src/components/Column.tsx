@@ -21,9 +21,10 @@ const Column = ({
   return (
     <div
       ref={setNodeRef}
-      className={`droppable-area w-full md:m-2 h-full md:h-full min-h-[200px] md:min-h-0 rounded transition-colors ${
-        isDarkMode ? "bg-gray-700" : "bg-gray-300"
-      } ${isOver ? "drag-over" : ""}`}
+      className={`droppable-area flex flex-col w-full md:m-2 rounded transition-colors
+        ${isDarkMode ? "bg-gray-700" : "bg-gray-300"}
+        ${isOver ? "drag-over" : ""}
+        flex-1 h-full`}
     >
       <h2
         className={`text-center p-2 md:p-4 font-semibold border-b text-sm md:text-base ${

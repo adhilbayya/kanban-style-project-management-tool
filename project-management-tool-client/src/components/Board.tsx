@@ -12,6 +12,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import Card from "./Card";
+import { useUser, useAuth } from "@clerk/clerk-react";
 
 interface ColumnType {
   todo: CardType[];
@@ -42,13 +43,22 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
   const [showCardModal, setShowCardModal] = useState<boolean>(false);
   const [activeCard, setActiveCard] = useState<CardType | null>(null);
 
+  const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   // 🔹 Fetch all projects
   useEffect(() => {
     const fetchProjects = async () => {
+      if (!isLoaded || !user) return;
       try {
         setIsLoading(true);
+        const token = await getToken();
         const response = await axios.get<ProjectType[]>(
-          "http://localhost:3000/cards/projects"
+          `http://localhost:3000/cards/projects`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         setProjects(response.data);
         setError(null);
@@ -60,7 +70,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
       }
     };
     fetchProjects();
-  }, []);
+  }, [isLoaded, user, getToken]);
 
   // 🔹 Select first project automatically
   useEffect(() => {
@@ -72,12 +82,18 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
   // 🔹 Fetch cards for selected project
   useEffect(() => {
     const fetchCards = async () => {
-      if (!selectedProjectId) return;
+      if (!selectedProjectId || !user) return;
 
       try {
         setIsLoading(true);
+        const token = await getToken();
         const response = await axios.get<CardType[]>(
-          `http://localhost:3000/cards/projects/${selectedProjectId}/cards`
+          `http://localhost:3000/cards/projects/${selectedProjectId}/cards`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         const organisedData = organiseCardsByList(response.data);
         setColumns(organisedData);
@@ -91,7 +107,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
     };
 
     fetchCards();
-  }, [selectedProjectId]);
+  }, [selectedProjectId, user, getToken]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -127,17 +143,34 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
       return { ...prevColumn, [fromList]: fromCard, [toList]: toCard };
     });
 
-    axios
-      .put(
-        `http://localhost:3000/cards/projects/${selectedProjectId}/cards/${cardId}`,
-        { status: toList }
-      )
-      .then(() => {
+    (async () => {
+      try {
+        const token = await getToken();
+        await axios.put(
+          `http://localhost:3000/cards/projects/${selectedProjectId}/cards/${cardId}`,
+          { status: toList },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         console.log(`Card ${cardId} moved to ${toList} successfully.`);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Failed to update card status:", err);
+      }
+    })();
+  };
+
+  const handleDeleteProject = (deletedId: string) => {
+    if (selectedProjectId === deletedId) {
+      setSelectedProjectId(null);
+      setColumns({
+        todo: [],
+        "in-progress": [],
+        done: [],
       });
+    }
   };
 
   const handleProjectSelect = (projectId: string) => {
@@ -146,9 +179,15 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
 
   const handleCreateProject = async (title: string, description: string) => {
     try {
+      const token = await getToken();
       const response = await axios.post(
         "http://localhost:3000/cards/projects",
-        { title, description }
+        { title, description },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setProjects([...projects, response.data]);
       setSelectedProjectId(response.data._id);
@@ -161,9 +200,15 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
   const handleCreateCard = async (title: string, description: string) => {
     if (!selectedProjectId) return;
     try {
+      const token = await getToken();
       const { data: newCard } = await axios.post<CardType>(
         `http://localhost:3000/cards/projects/${selectedProjectId}/cards`,
-        { title, description, status: "todo" }
+        { title, description, status: "todo" },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setColumns((prev) => ({
         ...prev,
@@ -178,8 +223,14 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
   const handleDeleteCard = async (cardId: string, fromList: string) => {
     if (!selectedProjectId) return;
     try {
+      const token = await getToken();
       await axios.delete(
-        `http://localhost:3000/cards/projects/${selectedProjectId}/cards/${cardId}`
+        `http://localhost:3000/cards/projects/${selectedProjectId}/cards/${cardId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setColumns((prevColumn) => ({
         ...prevColumn,
@@ -209,6 +260,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
           isDarkMode={isDarkMode}
           onToggleTheme={onToggleTheme}
           isCollapsed={sidebarCollapsed}
+          onProjectDelete={handleDeleteProject}
           projectsData={setProjects}
         />
 
@@ -289,7 +341,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
                 No projects found. Create your first project to get started!
               </div>
             ) : selectedProjectId ? (
-              <div className="flex flex-col md:flex-row h-full gap-2 overflow-hidden">
+              <div className="flex flex-col md:flex-row h-[calc(100vh-120px)] md:h-[calc(100vh-100px)] gap-2 overflow-auto md:overflow-hidden">
                 <Column
                   title="To Do"
                   id="todo"

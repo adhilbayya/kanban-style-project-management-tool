@@ -1,12 +1,14 @@
 import axios from "axios";
 import type { ProjectType } from "./Card";
 import { DeleteOutline } from "@mui/icons-material";
+import { useAuth, UserButton, useUser } from "@clerk/clerk-react";
 
 interface SidebarProps {
   projects: ProjectType[];
   selectedProjectId: string | null;
   onProjectSelect: (projectId: string) => void;
   onCreateProject: () => void;
+  onProjectDelete: (projectId: string) => void;
   isDarkMode: boolean;
   onToggleTheme: () => void;
   isCollapsed: boolean;
@@ -18,21 +20,37 @@ const Sidebar = ({
   selectedProjectId,
   onProjectSelect,
   onCreateProject,
+  onProjectDelete,
   isDarkMode,
   onToggleTheme,
   isCollapsed,
   projectsData,
 }: SidebarProps) => {
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const selectedProject = projects.find((p) => p._id === selectedProjectId);
 
   const handleDelete = async (projectId: string) => {
     try {
-      axios.delete(`http://localhost:3000/cards/projects/${projectId}`);
-      projectsData((prevProjects) => {
-        return prevProjects.filter((p) => p._id !== projectId);
+      const token = await getToken();
+      const confirmDelete = confirm(
+        "Are you sure you want to delete this project?"
+      );
+      if (!confirmDelete) return;
+
+      await axios.delete(`http://localhost:3000/cards/projects/${projectId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      projectsData((prevProjects) =>
+        prevProjects.filter((p) => p._id !== projectId)
+      );
+      onProjectDelete(projectId);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to delete project:", error);
+      alert("Failed to delete project. Please try again.");
     }
   };
 
@@ -52,13 +70,19 @@ const Sidebar = ({
       >
         {!isCollapsed ? (
           <div className="flex items-center justify-between">
-            <h2
-              className={`text-sm md:text-lg font-bold ${
-                isDarkMode ? "text-white" : "text-gray-800"
-              }`}
-            >
-              Project Manager
-            </h2>
+            <div className="flex items-center gap-2">
+              {/* User avatar + name */}
+              <UserButton afterSignOutUrl="/" />
+              <span
+                className={`text-sm md:text-base font-semibold ${
+                  isDarkMode ? "text-white" : "text-gray-800"
+                }`}
+              >
+                {user ? user.fullName || user.username || "User" : "Loading..."}
+              </span>
+            </div>
+
+            {/* Theme toggle button */}
             <button
               onClick={onToggleTheme}
               className={`p-1 md:p-1.5 rounded-md transition-colors ${
@@ -77,11 +101,7 @@ const Sidebar = ({
           </div>
         ) : (
           <div className="flex justify-center">
-            <div className="w-6 h-6 md:w-8 md:h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xs md:text-sm">
-                PM
-              </span>
-            </div>
+            <UserButton afterSignOutUrl="/" />
           </div>
         )}
       </div>

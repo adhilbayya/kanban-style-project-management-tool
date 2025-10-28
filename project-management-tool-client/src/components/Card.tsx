@@ -7,6 +7,7 @@ export interface CardType {
   description?: string;
   status: "todo" | "in-progress" | "done";
   projectId: string;
+  userId: string;
 }
 
 export interface ProjectType {
@@ -14,6 +15,7 @@ export interface ProjectType {
   title: string;
   description?: string;
   createdAt: string;
+  userId: string;
 }
 
 const Card = ({
@@ -45,7 +47,13 @@ const Card = ({
         isDarkMode
           ? "bg-gray-800 border-gray-600 hover:bg-gray-700"
           : "bg-white border-gray-300 hover:bg-gray-50"
-      } shadow-md hover:shadow-lg`}
+      } shadow-md hover:shadow-lg border-l-5 ${
+        card.status === "in-progress"
+          ? "border-l-yellow-400"
+          : card.status === "done"
+          ? "border-l-green-400"
+          : "border-l-red-400"
+      }`}
     >
       <h4
         className={`flex justify-between text-xs md:text-sm font-bold ${
