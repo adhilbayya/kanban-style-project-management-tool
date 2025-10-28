@@ -8,6 +8,11 @@ const projectSchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  userId: {
+    type: String,
+    required: true,
+    index: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

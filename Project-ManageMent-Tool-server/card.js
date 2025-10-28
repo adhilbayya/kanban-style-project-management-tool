@@ -12,6 +12,11 @@ const cardSchema = new mongoose.Schema({
     enum: ["todo", "in-progress", "done"],
     required: true,
   },
+  userId: {
+    type: String,
+    required: true,
+    index: true,
+  },
   projectId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Project",
