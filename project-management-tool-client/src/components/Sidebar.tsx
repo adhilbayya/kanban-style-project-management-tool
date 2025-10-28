@@ -29,6 +29,7 @@ const Sidebar = ({
   const { user } = useUser();
   const { getToken } = useAuth();
   const selectedProject = projects.find((p) => p._id === selectedProjectId);
+  const base_url = import.meta.env.BASE_URL;
 
   const handleDelete = async (projectId: string) => {
     try {
@@ -38,7 +39,7 @@ const Sidebar = ({
       );
       if (!confirmDelete) return;
 
-      await axios.delete(`http://localhost:3000/cards/projects/${projectId}`, {
+      await axios.delete(`${base_url}/cards/projects/${projectId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

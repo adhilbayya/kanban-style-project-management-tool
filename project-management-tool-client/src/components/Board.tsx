@@ -45,6 +45,8 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
 
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
+  const base_url = import.meta.env.BASE_URL;
+
   // 🔹 Fetch all projects
   useEffect(() => {
     const fetchProjects = async () => {
@@ -53,7 +55,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
         setIsLoading(true);
         const token = await getToken();
         const response = await axios.get<ProjectType[]>(
-          `http://localhost:3000/cards/projects`,
+          `${base_url}/cards/projects`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -70,7 +72,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
       }
     };
     fetchProjects();
-  }, [isLoaded, user, getToken]);
+  }, [isLoaded, user, getToken, base_url]);
 
   // 🔹 Select first project automatically
   useEffect(() => {
@@ -88,7 +90,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
         setIsLoading(true);
         const token = await getToken();
         const response = await axios.get<CardType[]>(
-          `http://localhost:3000/cards/projects/${selectedProjectId}/cards`,
+          `${base_url}/cards/projects/${selectedProjectId}/cards`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -107,7 +109,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
     };
 
     fetchCards();
-  }, [selectedProjectId, user, getToken]);
+  }, [selectedProjectId, user, getToken, base_url]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -147,7 +149,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
       try {
         const token = await getToken();
         await axios.put(
-          `http://localhost:3000/cards/projects/${selectedProjectId}/cards/${cardId}`,
+          `${base_url}/cards/projects/${selectedProjectId}/cards/${cardId}`,
           { status: toList },
           {
             headers: {
@@ -181,7 +183,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
     try {
       const token = await getToken();
       const response = await axios.post(
-        "http://localhost:3000/cards/projects",
+        `${base_url}/cards/projects`,
         { title, description },
         {
           headers: {
@@ -202,7 +204,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
     try {
       const token = await getToken();
       const { data: newCard } = await axios.post<CardType>(
-        `http://localhost:3000/cards/projects/${selectedProjectId}/cards`,
+        `${base_url}/cards/projects/${selectedProjectId}/cards`,
         { title, description, status: "todo" },
         {
           headers: {
@@ -225,7 +227,7 @@ const Board = ({ isDarkMode, onToggleTheme }: BoardProps) => {
     try {
       const token = await getToken();
       await axios.delete(
-        `http://localhost:3000/cards/projects/${selectedProjectId}/cards/${cardId}`,
+        `${base_url}/cards/projects/${selectedProjectId}/cards/${cardId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
